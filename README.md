@@ -36,49 +36,51 @@ You can then run it as `python3 -m re4save …`. Optionally, `python3 -m pip ins
 
 ## Usage
 
-**1. Quit the game, then copy your saves out.** macOS blocks Terminal from reading other apps' data, but Finder is allowed:
-
-1. In Finder, press **⌘⇧G** and paste
-   `~/Library/Containers/jp.co.capcom.RE4US/Data/Library/Application Support/CAPCOM/jp.co.capcom.RE4US/SaveData`
-2. Copy the whole `SaveData` folder to e.g. your Desktop. **Keep an untouched copy as your backup.**
-
-The folder holds `data00-1.bin` (system save: bonuses and CP), `data000.bin` (autosave), and `data001Slot.bin`,
-`data002Slot.bin`, … (manual slots). The tool also accepts a single file, or an iCloud-style `saveDataPackFile.bin`.
-
-**2. Look at what's inside:**
+**Quit the game first.** If the game is running, it overwrites your edit the next time it saves, so the tool refuses to edit until you quit.
 
 ```sh
-python3 -m re4save info ~/Desktop/SaveData
-```
-```
-[system]  data00-1.bin
-  CP: 20,400
-    weapons             0/10 unlocked,   0/10 purchased
-    accessories         9/30 unlocked,   0/30 purchased
-    ...
-[slot1]  data001Slot.bin: playtime 25.4 h, pesetas 154,990, saves 55, ammo stacks 5 (118 rounds)
+python3 -m re4save info                                   # what's in your saves
+python3 -m re4save edit --infinite-ammo --cp 999999       # Cat Ears, bonus weapons, CP
+python3 -m re4save edit --ptas 2000000                    # pesetas in every slot
+python3 -m re4save edit --slot 2 --ptas 2000000 --ammo 99 # only slot 2
+python3 -m re4save edit --unlock all --challenges all     # everything in the bonus shop + all challenges
+python3 -m re4save restore                                # undo: put the latest backup back
 ```
 
-**3. Edit.** The output keeps the same format as the input, and the input is never modified unless you pass `--in-place`:
+With no path, the tool works on **the save folder the game actually loads**:
+`~/Library/Containers/jp.co.capcom.RE4US/Data/Library/Application Support/CAPCOM/jp.co.capcom.RE4US/SaveData`.
+Edits go straight into that folder, so the next time you start the game you see them.
 
-```sh
-# infinite ammo bonuses + lots of CP
-python3 -m re4save edit ~/Desktop/SaveData -o ~/Desktop/SaveData-modded --infinite-ammo --cp 999999
+### Backups
 
-# pesetas and full ammo stacks, only for slot 2
-python3 -m re4save edit ~/Desktop/SaveData -o ~/Desktop/SaveData-modded --slot 2 --ptas 2000000 --ammo 99
+Before every edit, the tool copies the saves it's about to change to `~/Documents/RE4 save backups/<date time>/`.
+The backups are kept outside the game's folder and iCloud, so the game never sees them.
 
-# unlock everything in the bonus shop and complete every challenge
-python3 -m re4save edit ~/Desktop/SaveData -o ~/Desktop/SaveData-modded --unlock all --challenges all
-```
+- `python3 -m re4save restore` puts the most recent backup back.
+- `restore --list` shows all backups, and `restore "<name>"` restores a specific one.
+- `--no-backup` skips the backup.
+- `-o PATH` writes a modified copy somewhere else and leaves your saves alone.
 
-**4. Copy the modded files back** into the game's `SaveData` folder with Finder, replacing the originals, then start the game.
-Equip the Cat Ears from the game's accessories menu.
+### macOS permission (first run)
 
-> **iCloud:** don't use *Options → iCloud → Download* afterwards, because it replaces your local saves with the cloud copy.
-> Use *Upload* once you're happy, if you want the modded save on your other devices.
+macOS protects other apps' data, so the first time you'll probably see *"macOS blocks your terminal from reading the
+game's save folder"*. You have three options:
 
-`python3 -m re4save dump <path> --save system|autosave|N` prints every field of a save, if you want to explore further.
+1. **Give your terminal Full Disk Access** (simplest, one time). Go to System Settings → Privacy & Security → Full Disk Access,
+   enable Terminal (or iTerm, …), then restart the terminal.
+2. **Use the iCloud copy instead.** No permission is needed:
+   in the game choose *Options → iCloud → Upload*, quit, run the commands with `--icloud`, then start the game and choose
+   *Options → iCloud → Download*. The iCloud copy is only as recent as your last Upload, so upload first.
+3. **Work on a copy.** In Finder, press ⌘⇧G and paste the folder path above, then copy `SaveData` somewhere and pass that path to the tool.
+   When you're done, copy the files back with Finder.
+
+### What's in the folder
+
+`data00-1.bin` is the system save (bonuses, CP, challenges). `data000.bin` is the autosave, and `data001Slot.bin`,
+`data002Slot.bin`, … are the manual slots. The tool also accepts a single file or an iCloud-style `saveDataPackFile.bin` as PATH.
+
+Equip the Cat Ears from the game's Extras menu (*Leon's Accessories*). `python3 -m re4save dump --save system|autosave|N`
+prints every field of a save, if you want to explore further.
 
 ## How it works
 

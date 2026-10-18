@@ -1,21 +1,20 @@
 import argparse
-import os
-import shutil
 import sys
-import time
 
-from . import edits, serializer
+from . import edits, locations, serializer
 from .container import SYSTEM, SaveSet, slot_name
 
-DEFAULT_DIR = "~/Library/Containers/jp.co.capcom.RE4US/Data/Library/Application Support/CAPCOM/jp.co.capcom.RE4US/SaveData"
 
-
-def _load(path):
+def _load(a):
+    path = locations.resolve(a.path, a.icloud)
     try:
         return SaveSet.load(path)
     except PermissionError:
-        sys.exit(f"Permission denied reading {path}.\nmacOS protects other apps' data: copy the SaveData folder "
-                 "somewhere else with Finder first (see README), or give your terminal Full Disk Access.")
+        sys.exit(locations.permission_help(path))
+    except FileNotFoundError:
+        if path == locations.LOCAL:
+            sys.exit(f"game save folder not found: {path}\nHas the game been started on this Mac?")
+        sys.exit(f"not found: {path}")
     except ValueError as e:
         sys.exit(f"Cannot read save: {e}")
 
@@ -35,7 +34,7 @@ def _parse_slots(spec, saves):
 
 
 def cmd_info(a):
-    saves = _load(a.path)
+    saves = _load(a)
     print(f"{saves.kind}: {saves.path}")
     for idx in sorted(saves.files):
         name, dsss = saves.files[idx]
@@ -49,7 +48,7 @@ def cmd_info(a):
 
 
 def cmd_dump(a):
-    saves = _load(a.path)
+    saves = _load(a)
     idx = SYSTEM if a.save == "system" else _parse_slots(a.save, saves)[0]
     _, dsss = saves.files[idx]
     roots, _ = serializer.parse(dsss.payload)
@@ -65,8 +64,6 @@ def _check_range(name, v, lo, hi):
 
 
 def cmd_edit(a):
-    if not a.output and not a.in_place:
-        sys.exit("choose where to write: -o OUTPUT (recommended) or --in-place (makes a backup)")
     _check_range("cp", a.cp, 0, edits.MAX_MONEY)
     _check_range("ptas", a.ptas, 0, edits.MAX_MONEY)
     _check_range("ammo", a.ammo, 1, edits.MAX_AMMO)
@@ -80,7 +77,10 @@ def cmd_edit(a):
     if not (wants_system or wants_slots):
         sys.exit("nothing to do: pass at least one of --infinite-ammo, --cp, --unlock, --challenges, --ptas, --ammo")
 
-    saves = _load(a.path)
+    saves = _load(a)
+    if not a.output and locations.game_running() and not a.force:
+        sys.exit("Resident Evil 4 is running: save, quit the game and run this again "
+                 "(otherwise the game overwrites the edit). --force skips this check.")
     changed = False
     if wants_system:
         if SYSTEM not in saves.files:
@@ -110,32 +110,58 @@ def cmd_edit(a):
     if not changed:
         return
 
-    if a.in_place:
-        backup = f"{saves.path.rstrip('/')}.bak-{time.strftime('%Y%m%d-%H%M%S')}"
-        (shutil.copytree if os.path.isdir(saves.path) else shutil.copy2)(saves.path, backup)
-        print(f"backup: {backup}")
-        written = saves.write(saves.path)
-    else:
+    if a.output:
         written = saves.write(a.output)
+    else:
+        if not a.no_backup:
+            print(f"backup: {locations.backup(saves.path)}")
+        try:
+            written = saves.write(saves.path)
+        except PermissionError:
+            sys.exit(locations.permission_help(saves.path))
     for p in written:
         print(f"wrote {p}")
+    if not a.output and saves.path == locations.ICLOUD:
+        print("Now start the game and use Options > iCloud > Download to load the edited save.")
+
+
+def cmd_restore(a):
+    if a.list:
+        for b in locations.list_backups():
+            print(b)
+        return
+    if locations.game_running() and not a.force:
+        sys.exit("Resident Evil 4 is running: quit it first (--force skips this check).")
+    try:
+        folder, source = locations.restore(a.backup)
+    except PermissionError:
+        sys.exit(locations.permission_help(locations.LOCAL))
+    print(f"restored {folder}\n      -> {source}")
 
 
 def main(argv=None):
     p = argparse.ArgumentParser(prog="re4save", description="Save editor for Resident Evil 4 (2023) on macOS / iOS.")
     sub = p.add_subparsers(dest="cmd", required=True)
 
-    i = sub.add_parser("info", help="show what is in a save folder / pack / file")
-    i.add_argument("path", nargs="?", default=DEFAULT_DIR)
+    def where(sp):
+        sp.add_argument("path", nargs="?",
+                        help="SaveData folder, saveDataPackFile.bin or single save file "
+                             "(default: the folder the game loads from)")
+        sp.add_argument("--icloud", action="store_true",
+                        help="use the iCloud copy (what Options > iCloud > Upload/Download uses)")
+
+    i = sub.add_parser("info", help="show what is in your saves")
+    where(i)
     i.set_defaults(func=cmd_info)
 
-    e = sub.add_parser("edit", help="modify saves",
-                       description="PATH is a SaveData folder, a saveDataPackFile.bin or a single save file. "
-                                   "Output keeps the same format as the input.")
-    e.add_argument("path")
-    out = e.add_mutually_exclusive_group()
-    out.add_argument("-o", "--output", help="output folder or file (input stays untouched)")
-    out.add_argument("--in-place", action="store_true", help="overwrite the input after backing it up")
+    e = sub.add_parser("edit", help="modify saves (in place, after a backup)",
+                       description="Edits the game's saves in place after backing them up to "
+                                   f"'{locations.BACKUP_ROOT}'. Use -o to write a copy elsewhere instead.")
+    where(e)
+    e.add_argument("-o", "--output", help="write the result here instead of overwriting (no backup needed)")
+    e.add_argument("--no-backup", action="store_true", help="overwrite without making a backup")
+    e.add_argument("--force", action="store_true", help="edit even if the game seems to be running")
+    e.add_argument("--in-place", action="store_true", help=argparse.SUPPRESS)  # default since 1.2
     g = e.add_argument_group("system save (shared by every slot)")
     g.add_argument("--infinite-ammo", action="store_true",
                    help="shortcut for --unlock weapons accessories: unlocks + purchases the bonus weapons and the "
@@ -155,8 +181,14 @@ def main(argv=None):
                    help="set every ammo stack in inventory/storage to N rounds (experimental, the game may clamp it)")
     e.set_defaults(func=cmd_edit)
 
+    r = sub.add_parser("restore", help="put a backup back where it came from")
+    r.add_argument("backup", nargs="?", help="backup folder name (default: the most recent)")
+    r.add_argument("--list", action="store_true", help="list backups")
+    r.add_argument("--force", action="store_true", help="restore even if the game seems to be running")
+    r.set_defaults(func=cmd_restore)
+
     d = sub.add_parser("dump", help="print every field of one save (for exploring)")
-    d.add_argument("path")
+    where(d)
     d.add_argument("--save", default="system", help="system (default), autosave, or slot number")
     d.add_argument("-o", "--output", help="write to a file instead of stdout")
     d.set_defaults(func=cmd_dump)

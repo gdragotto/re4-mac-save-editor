@@ -5,7 +5,7 @@ import struct
 import tempfile
 import unittest
 
-from re4save import edits, serializer
+from re4save import edits, locations, serializer
 from re4save.cli import main
 from re4save.container import SaveSet
 from re4save.crypto import DsssFile, murmur3_32
@@ -162,6 +162,19 @@ class Tests(unittest.TestCase):
             _, objs = serializer.parse(SaveSet.load(dst).files[-1][1].payload)
             done = {rid: o.fields[edits.IS_UNLOCK].value for rid, o in edits.challenges(objs).items()}
             self.assertEqual(done, {0: False, 1: False, 200: True})
+
+    def test_in_place_backup_and_restore(self):
+        with tempfile.TemporaryDirectory() as t:
+            locations.BACKUP_ROOT = os.path.join(t, "backups")
+            src = os.path.join(t, "SaveData")
+            os.mkdir(src)
+            original = make_dsss(system_payload())
+            open(os.path.join(src, "data00-1.bin"), "wb").write(original)
+            main(["edit", src, "--cp", "123"])
+            self.assertNotEqual(open(os.path.join(src, "data00-1.bin"), "rb").read(), original)
+            self.assertEqual(len(locations.list_backups()), 1)
+            main(["restore"])
+            self.assertEqual(open(os.path.join(src, "data00-1.bin"), "rb").read(), original)
 
     def test_pack_roundtrip_and_edit(self):
         with tempfile.TemporaryDirectory() as t:
