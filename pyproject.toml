@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "re4-mac-save-editor"
+version = "1.0.0"
+description = "Save editor for Resident Evil 4 (2023) on macOS: infinite ammo bonuses, CP, pesetas, ammo"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.9"
+dependencies = ["pycryptodome>=3.10"]
+
+[project.scripts]
+re4save = "re4save.cli:main"
+
+[tool.setuptools]
+packages = ["re4save"]
