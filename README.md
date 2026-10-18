@@ -1,7 +1,7 @@
 # re4-mac-save-editor
 
 Save editor for **Resident Evil 4 (2023 remake) on macOS** (Mac App Store build, `jp.co.capcom.RE4US`).
-It can unlock the infinite-ammo bonuses, set CP and pesetas, and refill ammo, either on every save or only on the ones you pick.
+It can unlock the infinite-ammo bonuses and other bonus-shop items, complete challenges, set CP and pesetas, and refill ammo, either on every save or only on the ones you pick.
 
 The Steam/PC version uses a different encryption ("Lime"), so this tool doesn't support it. For PC, use
 [LimebrellaSharp](https://github.com/mi5hmash/LimebrellaSharp) or [ree-save-editor](https://github.com/kvasszn/ree-save-editor).
@@ -14,6 +14,7 @@ The iPhone/iPad build should use the same format, but I haven't tested it.
 | `--infinite-ammo` | system | Unlocks **and marks as purchased** every Extra Content Shop weapon and accessory. That includes the **Cat Ears** (infinite ammo for every weapon except rocket launchers) and the bonus weapons. |
 | `--cp N` | system | Sets your Extra Content Shop CP. |
 | `--unlock CAT…` | system | Unlocks any of: `gamemodes weapons costumes accessories figures artwork photostyles cp11-weapons cp11-costumes cp11-accessories cp11-figures cp12-costumes cp12-figures all` |
+| `--challenges SET…` | system | Marks challenges (Bonuses → Records) as completed: `main` (111), `separate-ways` (60), `all`. Their CP rewards aren't paid out, so use `--cp` for that. This may also unlock the matching Game Center achievements. |
 | `--unlock-only` | system | Makes items buyable with CP instead of marking them purchased. |
 | `--ptas N` | slots | Sets pesetas. |
 | `--ammo N` | slots | Sets every ammo stack (attaché case and storage) to N rounds. Experimental: the game may clamp stacks above their normal size. |
@@ -67,8 +68,8 @@ python3 -m re4save edit ~/Desktop/SaveData -o ~/Desktop/SaveData-modded --infini
 # pesetas and full ammo stacks, only for slot 2
 python3 -m re4save edit ~/Desktop/SaveData -o ~/Desktop/SaveData-modded --slot 2 --ptas 2000000 --ammo 99
 
-# unlock everything in the bonus shop
-python3 -m re4save edit ~/Desktop/SaveData -o ~/Desktop/SaveData-modded --unlock all
+# unlock everything in the bonus shop and complete every challenge
+python3 -m re4save edit ~/Desktop/SaveData -o ~/Desktop/SaveData-modded --unlock all --challenges all
 ```
 
 **4. Copy the modded files back** into the game's `SaveData` folder with Finder, replacing the originals, then start the game.

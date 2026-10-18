@@ -7,6 +7,8 @@ EX_POINT = h("_ExPoint")              # CP in the Extra Content Shop (system sav
 BONUS_ID = h("_BonusID")              # chainsaw.ExShopData
 IS_UNLOCK = 0x9A447DAD                # chainsaw.ExShopData._IsUnlock
 IS_BUY = 0x550CD0C2                   # chainsaw.ExShopData._IsBuy
+RECORD_ID = 0x835F7CE2                # chainsaw.GameRecordData._RecordID (challenges)
+RECORD_COUNT = 0x688FBADB             # chainsaw.GameRecordData._Count
 PTAS = h("PTAS")                      # pesetas (slot saves)
 CURRENT_AMMO = h("_CurrentAmmo")      # chainsaw.WeaponItem: item id of the ammo it uses
 ITEM_ID = 0x3A833CEC                  # chainsaw.Item._ItemId
@@ -16,6 +18,7 @@ SAVE_COUNT = 0x45157494               # chainsaw.CampaignManager.GameData._SaveC
 
 NAMES = {v: k for k, v in {
     "_ExPoint": EX_POINT, "_BonusID": BONUS_ID, "_IsUnlock": IS_UNLOCK, "_IsBuy": IS_BUY,
+    "_RecordID": RECORD_ID, "_Count": RECORD_COUNT,
     "PTAS": PTAS, "_CurrentAmmo": CURRENT_AMMO, "_ItemId": ITEM_ID, "_CurrentItemCount": ITEM_COUNT,
     "_GameElapsedTime": ELAPSED, "_SaveCount": SAVE_COUNT, "VersionValue": h("VersionValue"),
 }.items()}
@@ -36,6 +39,8 @@ BONUS_CATEGORIES = {
     "cp12-costumes": range(424, 425),
     "cp12-figures": range(426, 431),
 }
+# Challenge record ids: main game 0-110, Separate Ways 200-259
+CHALLENGE_SETS = {"main": range(0, 200), "separate-ways": range(200, 300)}
 MAX_MONEY = 9_999_999
 MAX_AMMO = 999
 
@@ -54,6 +59,12 @@ def ex_shop(objects):
     """{bonus_id: Obj} for every Extra Content Shop entry."""
     return {o.fields[BONUS_ID].value: o for o in objects
             if isinstance(o.fields.get(BONUS_ID), Value) and IS_UNLOCK in o.fields and IS_BUY in o.fields}
+
+
+def challenges(objects):
+    """{record_id: Obj} for every challenge (chainsaw.GameRecordData). _IsUnlock shares the shop field's hash."""
+    return {o.fields[RECORD_ID].value: o for o in objects
+            if isinstance(o.fields.get(RECORD_ID), Value) and IS_UNLOCK in o.fields and RECORD_COUNT in o.fields}
 
 
 def category_of(bonus_id):
@@ -84,6 +95,12 @@ def summarize_system(objects):
             u = sum(o.fields[IS_UNLOCK].value for o in entries)
             b = sum(o.fields[IS_BUY].value for o in entries)
             lines.append(f"  {cat:<17} {u:>3}/{len(entries)} unlocked, {b:>3}/{len(entries)} purchased")
+    recs = challenges(objects)
+    for name, r in CHALLENGE_SETS.items():
+        sel = [o for rid, o in recs.items() if rid in r]
+        if sel:
+            done = sum(o.fields[IS_UNLOCK].value for o in sel)
+            lines.append(f"challenges {name}: {done}/{len(sel)} completed")
     return lines
 
 
@@ -132,6 +149,21 @@ def unlock(buf, objects, categories, purchase=True):
                     o.fields[f].set(buf, True)
                     n += 1
         changes.append(f"{cat}: {'unlocked + purchased' if purchase else 'unlocked'} ({n} flags changed)")
+    return changes
+
+
+def complete_challenges(buf, objects, sets):
+    recs = challenges(objects)
+    if not recs:
+        raise ValueError("challenge records not found (is this the system save?)")
+    changes = []
+    for name in sets:
+        n = 0
+        for rid, o in recs.items():
+            if rid in CHALLENGE_SETS[name] and not o.fields[IS_UNLOCK].value:
+                o.fields[IS_UNLOCK].set(buf, True)
+                n += 1
+        changes.append(f"challenges {name}: {n} marked completed")
     return changes
 
 

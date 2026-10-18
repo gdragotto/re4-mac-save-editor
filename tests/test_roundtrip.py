@@ -68,7 +68,18 @@ def system_payload():
             shop_entry(i, i == 38)(w)
         w.align(4)
 
-    w.cls(0xAAAA, [shop_list, lambda w: w.field_scalar(edits.EX_POINT, 7, "<i", 20400)])
+    def records(w):
+        w.u32(0xF83B6FF0)
+        w.i32(-1)
+        w.align(4)
+        w.i32(0x11); w.u32(8); w.u32(3); w.i32(1)
+        for rid in (0, 1, 200):
+            w.cls(0x5678, [lambda w, rid=rid: w.field_scalar(edits.RECORD_ID, 7, "<i", rid),
+                           lambda w: w.field_scalar(edits.IS_UNLOCK, 2, "<?", False),
+                           lambda w: w.field_scalar(edits.RECORD_COUNT, 7, "<i", 0)])
+        w.align(4)
+
+    w.cls(0xAAAA, [shop_list, records, lambda w: w.field_scalar(edits.EX_POINT, 7, "<i", 20400)])
     return bytes(w.b)
 
 
@@ -142,6 +153,15 @@ class Tests(unittest.TestCase):
                       if edits.ITEM_ID in o.fields}
             self.assertEqual(counts[112800000], 50)
             self.assertEqual(counts[114416000], 1)                       # non-ammo untouched
+
+    def test_challenges(self):
+        with tempfile.TemporaryDirectory() as t:
+            src, dst = os.path.join(t, "data00-1.bin"), os.path.join(t, "out.bin")
+            open(src, "wb").write(make_dsss(system_payload()))
+            main(["edit", src, "-o", dst, "--challenges", "separate-ways"])
+            _, objs = serializer.parse(SaveSet.load(dst).files[-1][1].payload)
+            done = {rid: o.fields[edits.IS_UNLOCK].value for rid, o in edits.challenges(objs).items()}
+            self.assertEqual(done, {0: False, 1: False, 200: True})
 
     def test_pack_roundtrip_and_edit(self):
         with tempfile.TemporaryDirectory() as t:

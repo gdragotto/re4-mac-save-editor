@@ -63,6 +63,7 @@ across saves, **not** an integrity check.
 |---|---|---|
 | `_ExPoint` (CP) | b1bf9eba | system › chainsaw.GameRecordManager.SaveData |
 | `_BonusID` / `_IsUnlock` / `_IsBuy` | fe3bc2b9 / 9a447dad / 550cd0c2 | system › chainsaw.ExShopData |
+| `_RecordID` / `_IsUnlock` / `_Count` | 835f7ce2 / 9a447dad / 688fbadb | system › chainsaw.GameRecordData (challenges; ids 0–110 main game, 200–259 Separate Ways) |
 | `PTAS` | 70c6acd7 | slot › chainsaw.InventoryManager.GameSaveData |
 | `_ItemId` / `_CurrentItemCount` | 3a833cec / f6ad4887 | slot › chainsaw.Item |
 | `_CurrentAmmo` (ammo item id of a weapon) | murmur3("_CurrentAmmo") | slot › chainsaw.WeaponItem |

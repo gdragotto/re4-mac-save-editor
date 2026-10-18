@@ -74,16 +74,17 @@ def cmd_edit(a):
                     key=list(edits.BONUS_CATEGORIES).index)
     if a.infinite_ammo:
         unlock = sorted(set(unlock) | {"weapons", "accessories"}, key=list(edits.BONUS_CATEGORIES).index)
-    wants_system = a.cp is not None or unlock
+    chal = sorted(set(edits.CHALLENGE_SETS) if "all" in (a.challenges or []) else set(a.challenges or []))
+    wants_system = a.cp is not None or unlock or chal
     wants_slots = a.ptas is not None or a.ammo is not None
     if not (wants_system or wants_slots):
-        sys.exit("nothing to do: pass at least one of --infinite-ammo, --cp, --unlock, --ptas, --ammo")
+        sys.exit("nothing to do: pass at least one of --infinite-ammo, --cp, --unlock, --challenges, --ptas, --ammo")
 
     saves = _load(a.path)
     changed = False
     if wants_system:
         if SYSTEM not in saves.files:
-            sys.exit("system save (data00-1.bin) not found; --cp/--unlock need it")
+            sys.exit("system save (data00-1.bin) not found; --cp/--unlock/--challenges need it")
         dsss = saves.files[SYSTEM][1]
         _, objs = serializer.parse(dsss.payload)
         log = []
@@ -91,6 +92,8 @@ def cmd_edit(a):
             log += edits.set_cp(dsss.payload, objs, a.cp)
         if unlock:
             log += edits.unlock(dsss.payload, objs, unlock, purchase=not a.unlock_only)
+        if chal:
+            log += edits.complete_challenges(dsss.payload, objs, chal)
         print("[system]\n  " + "\n  ".join(log))
         changed = True
     if wants_slots:
@@ -142,6 +145,9 @@ def main(argv=None):
                    help="unlock Extra Content Shop items: " + ", ".join(edits.BONUS_CATEGORIES) + ", all")
     g.add_argument("--unlock-only", action="store_true",
                    help="make items available to buy with CP instead of marking them purchased")
+    g.add_argument("--challenges", nargs="+", metavar="SET", choices=list(edits.CHALLENGE_SETS) + ["all"],
+                   help="mark challenges (Bonuses > Records) completed: main, separate-ways, all. "
+                        "Their CP rewards are not paid out, use --cp for that")
     s = e.add_argument_group("slot saves")
     s.add_argument("--slot", metavar="LIST", help="which slots: 'all' (default), 'autosave', or e.g. '1,3'")
     s.add_argument("--ptas", type=int, metavar="N", help=f"set pesetas (max {edits.MAX_MONEY:,})")
