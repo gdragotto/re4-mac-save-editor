@@ -114,7 +114,8 @@ def make_dsss(payload):
 
 
 def make_pack(blobs):
-    header = bytearray(b"PACK" + b"\x02\x01\x06\x00" + b"\x22" * 8 + b"\0" * (0x70 - 16))
+    header = bytearray(b"PACK" + b"\x02\x01" + struct.pack("<H", len(blobs)) + b"\x22" * 8
+                       + b"\0" * (0x10 * len(blobs)))
     for i, (idx, blob) in enumerate(blobs):
         struct.pack_into("<i", header, 0x10 + 0x10 * i, idx)
         struct.pack_into("<Q", header, 0x18 + 0x10 * i, len(blob))
@@ -201,6 +202,19 @@ class Tests(unittest.TestCase):
             _, objs = serializer.parse(s.files[1][1].payload)
             self.assertEqual(edits.find(objs, edits.PTAS)[0][1].value, easy.PTAS)
             self.assertEqual(len(locations.list_backups()), 1)
+
+    def test_pack_with_extra_slot(self):
+        # the game adds one entry per new slot (here slot 6), the header grows with it
+        with tempfile.TemporaryDirectory() as t:
+            ids = [-1, 0, 1, 2, 3, 4, 6]
+            pack = make_pack([(i, make_dsss(system_payload() if i == -1 else slot_payload())) for i in ids])
+            src = os.path.join(t, "saveDataPackFile.bin")
+            open(src, "wb").write(pack)
+            self.assertEqual(list(SaveSet.load(src).files), ids)
+            main(["edit", src, "-o", os.path.join(t, "mod.bin"), "--slot", "6", "--ptas", "9"])
+            s = SaveSet.load(os.path.join(t, "mod.bin"))
+            _, objs = serializer.parse(s.files[6][1].payload)
+            self.assertEqual(edits.find(objs, edits.PTAS)[0][1].value, 9)
 
     def test_pack_roundtrip_and_edit(self):
         with tempfile.TemporaryDirectory() as t:

@@ -16,9 +16,9 @@ iCloud transfers bundle the same files into `saveDataPackFile.bin`:
 
 | Offset | Content |
 |---|---|
-| 0x00 | `PACK`, version bytes, u64 user id |
-| 0x10 | 6 × { i32 slot index (-1 = system), 4 bytes padding, u64 size } |
-| 0x70 | the DSSS files, back to back |
+| 0x00 | `PACK`, u16 version, u16 entry count N, u64 user id |
+| 0x10 | N × { i32 slot index (-1 = system), 4 bytes padding, u64 size } (N grows when you use more slots) |
+| 0x10 + 16·N | the DSSS files, back to back |
 | end-32 | SHA-256 of everything before it |
 
 ## DSSS container

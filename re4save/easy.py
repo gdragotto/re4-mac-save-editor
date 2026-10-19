@@ -1,5 +1,6 @@
 """Guided mode for people who don't want to touch the command line: pick numbers, press Enter."""
 import os
+import struct
 import subprocess
 import sys
 
@@ -44,14 +45,26 @@ def wait_for_game_to_close():
         ask("Press Enter when the game is closed... ")
 
 
+ISSUES = "https://github.com/gdragotto/re4-mac-save-editor/issues"
+
+
+def load(path):
+    try:
+        return SaveSet.load(path)
+    except (ValueError, struct.error, IndexError) as e:
+        say(f"{RED}Sorry, I couldn't read the saves in{RESET} {path}\n  ({e})")
+        say(f"Nothing was changed. Please report this at {ISSUES}")
+        goodbye(1)
+
+
 def find_saves():
     """Return (SaveSet, where) with where = 'local' | 'icloud', guiding the user through permissions."""
     try:
-        return SaveSet.load(locations.LOCAL), "local"
+        return load(locations.LOCAL), "local"
     except FileNotFoundError:
         if os.path.exists(locations.ICLOUD):
             say(f"{YELLOW}No local saves found, using your iCloud save.{RESET}")
-            return SaveSet.load(locations.ICLOUD), "icloud"
+            return load(locations.ICLOUD), "icloud"
         say(f"{RED}No Resident Evil 4 saves found on this Mac.{RESET} Play the game once, save, and try again.")
         goodbye(1)
     except PermissionError:
@@ -77,7 +90,7 @@ In the window that just opened (Privacy & Security > Full Disk Access):
         say(f"\n{BOLD}Before continuing:{RESET} open the game, go to Options > iCloud > {BOLD}Upload{RESET}, then quit the game.")
         ask("Press Enter when that's done... ")
         wait_for_game_to_close()
-        return SaveSet.load(locations.ICLOUD), "icloud"
+        return load(locations.ICLOUD), "icloud"
     sys.exit(0)
 
 

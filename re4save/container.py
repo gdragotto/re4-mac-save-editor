@@ -1,8 +1,8 @@
 """Save locations: a SaveData folder (one DSSS file per save) or a saveDataPackFile.bin bundle.
 
 saveDataPackFile.bin (used for iCloud transfers):
-    0x00  "PACK", version bytes, u64 user id
-    0x10  6 entries of (i32 slot index, 4 pad, u64 size)   slot -1 = system data
+    0x00  "PACK", u16 version, u16 entry count, u64 user id
+    0x10  count entries of (i32 slot index, 4 pad, u64 size)   slot -1 = system data
     ...   the DSSS files, back to back
     -32   SHA-256 of everything before it
 """
@@ -14,8 +14,6 @@ import struct
 from .crypto import DsssFile
 
 PACK_MAGIC = b"PACK"
-PACK_HEADER_SIZE = 0x70
-PACK_ENTRIES = 6
 
 SYSTEM = -1
 
@@ -73,19 +71,21 @@ class SaveSet:
         if hashlib.sha256(data[:-32]).digest() != data[-32:]:
             raise SystemExit("pack checksum mismatch (corrupted file?)")
         files = {}
-        off = PACK_HEADER_SIZE
-        for i in range(PACK_ENTRIES):
+        count = struct.unpack_from("<H", data, 6)[0]      # one entry per save (grows with new slots)
+        header_size = 0x10 + 0x10 * count
+        off = header_size
+        for i in range(count):
             idx, size = struct.unpack_from("<i4xQ", data, 0x10 + 0x10 * i)
             files[idx] = (f"pack[{idx}]", DsssFile.decrypt(data[off:off + size]))
             off += size
-        return cls("pack", path, files, pack_header=data[:PACK_HEADER_SIZE])
+        return cls("pack", path, files, pack_header=data[:header_size])
 
     def write(self, out_path):
         out_path = os.path.expanduser(out_path)
         if self.kind == "pack":
             header = bytearray(self.pack_header)
             body = b""
-            for i, idx in enumerate(sorted(self.files)):
+            for i, idx in enumerate(self.files):           # keep the pack's own order
                 blob = self.files[idx][1].encrypt()
                 struct.pack_into("<i", header, 0x10 + 0x10 * i, idx)
                 struct.pack_into("<Q", header, 0x18 + 0x10 * i, len(blob))
