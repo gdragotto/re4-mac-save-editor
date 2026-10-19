@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="560" viewBox="0 0 860 560">
+  <defs>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="115%">
+      <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#000" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+  <g filter="url(#shadow)">
+    <rect x="20" y="14" width="820" height="526" rx="12" fill="#151515"/>
+    <rect x="20" y="14" width="820" height="34" rx="12" fill="#2a2a2a"/>
+    <rect x="20" y="36" width="820" height="12" fill="#2a2a2a"/>
+    <circle cx="44" cy="31" r="6.5" fill="#ff5f57"/>
+    <circle cx="66" cy="31" r="6.5" fill="#febc2e"/>
+    <circle cx="88" cy="31" r="6.5" fill="#28c840"/>
+    <text x="430" y="36" text-anchor="middle" font-family="-apple-system, 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#9a9a9a">RE4 Save Editor</text>
+  </g>
+  <g font-family="Menlo, Monaco, 'Courier New', monospace" font-size="14.5" fill="#d8d8d8">
+    <text x="44" y="82" fill="#e5484d" font-weight="bold">&#160;&#160;RESIDENT EVIL 4 · Mac save editor</text>
+    <text x="44" y="102" fill="#7a7a7a">&#160;&#160;Your saves are backed up before anything changes.</text>
+    <text x="44" y="138" font-weight="bold">What's in your saves now</text>
+    <text x="44" y="158">&#160;&#160;CP: 20,400</text>
+    <text x="44" y="178">&#160;&#160;Infinite ammo bonuses: <tspan fill="#7a7a7a">not unlocked</tspan></text>
+    <text x="44" y="198">&#160;&#160;slot1&#160;&#160;&#160;&#160;&#160;25.4 h played&#160;&#160;&#160;&#160;154,990 pesetas</text>
+    <text x="44" y="218">&#160;&#160;slot2&#160;&#160;&#160;&#160;&#160;18.0 h played&#160;&#160;&#160;&#160;549,222 pesetas</text>
+    <text x="44" y="254" font-weight="bold">What do you want?</text>
+    <text x="44" y="274">&#160;&#160;<tspan font-weight="bold">1</tspan>&#160;&#160;Infinite ammo&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;<tspan fill="#7a7a7a">Cat Ears + bonus weapons</tspan></text>
+    <text x="44" y="294">&#160;&#160;<tspan font-weight="bold">2</tspan>&#160;&#160;999,999 CP&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;<tspan fill="#7a7a7a">Extra Content Shop</tspan></text>
+    <text x="44" y="314">&#160;&#160;<tspan font-weight="bold">3</tspan>&#160;&#160;2,000,000 pesetas&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;<tspan fill="#7a7a7a">in every save slot</tspan></text>
+    <text x="44" y="334">&#160;&#160;<tspan font-weight="bold">4</tspan>&#160;&#160;Unlock the whole bonus shop <tspan fill="#7a7a7a">costumes, figures, ...</tspan></text>
+    <text x="44" y="354">&#160;&#160;<tspan font-weight="bold">5</tspan>&#160;&#160;Complete all challenges&#160;&#160;&#160;&#160;&#160;<tspan fill="#7a7a7a">Bonuses &gt; Records</tspan></text>
+    <text x="44" y="374">&#160;&#160;<tspan font-weight="bold">u</tspan>&#160;&#160;Undo: put back my last backup</text>
+    <text x="44" y="404">Type the numbers you want [1 2 3]: <tspan fill="#ffffff">1 2 3</tspan></text>
+    <text x="44" y="440">&#160;&#160;<tspan fill="#3fb950">✓</tspan> CP 20,400 -&gt; 999,999</text>
+    <text x="44" y="460">&#160;&#160;<tspan fill="#3fb950">✓</tspan> weapons + accessories: unlocked + purchased</text>
+    <text x="44" y="480">&#160;&#160;<tspan fill="#3fb950">✓</tspan> slot1: pesetas 154,990 -&gt; 2,000,000</text>
+    <text x="44" y="512" fill="#3fb950" font-weight="bold">All done!<tspan fill="#d8d8d8" font-weight="normal">&#160;&#160;Equip the Cat Ears in Extras &gt; Leon's Accessories.</tspan></text>
+  </g>
+</svg>

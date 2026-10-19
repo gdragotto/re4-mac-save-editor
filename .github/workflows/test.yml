@@ -3,10 +3,17 @@ on: [push, pull_request]
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.9", "3.12"]
+        crypto: ["pycryptodome", "pure-python"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
-      - run: pip install pycryptodome
+          python-version: ${{ matrix.python }}
+      - if: matrix.crypto == 'pycryptodome'
+        run: pip install pycryptodome
       - run: python -m unittest discover -s tests -v
+        env:
+          RE4SAVE_PURE_PYTHON: ${{ matrix.crypto == 'pure-python' && '1' || '' }}

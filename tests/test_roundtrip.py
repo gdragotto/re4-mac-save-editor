@@ -176,6 +176,32 @@ class Tests(unittest.TestCase):
             main(["restore"])
             self.assertEqual(open(os.path.join(src, "data00-1.bin"), "rb").read(), original)
 
+    def test_guided_mode(self):
+        import builtins
+        from re4save import easy
+        with tempfile.TemporaryDirectory() as t:
+            locations.BACKUP_ROOT = os.path.join(t, "backups")
+            locations.LOCAL = os.path.join(t, "SaveData")
+            locations.ICLOUD = os.path.join(t, "none.bin")
+            os.mkdir(locations.LOCAL)
+            open(os.path.join(locations.LOCAL, "data00-1.bin"), "wb").write(make_dsss(system_payload()))
+            open(os.path.join(locations.LOCAL, "data001Slot.bin"), "wb").write(make_dsss(slot_payload()))
+            answers = iter(["1 3", "y", ""])
+            real_input, builtins.input = builtins.input, lambda prompt="": next(answers)
+            real_system, os.system = os.system, lambda cmd: 0
+            try:
+                with self.assertRaises(SystemExit):
+                    easy.run()
+            finally:
+                builtins.input, os.system = real_input, real_system
+            s = SaveSet.load(locations.LOCAL)
+            _, objs = serializer.parse(s.files[-1][1].payload)
+            self.assertTrue(edits.ex_shop(objs)[38].fields[edits.IS_BUY].value)
+            self.assertEqual(edits.find(objs, edits.EX_POINT)[0][1].value, 20400)   # CP not picked
+            _, objs = serializer.parse(s.files[1][1].payload)
+            self.assertEqual(edits.find(objs, edits.PTAS)[0][1].value, easy.PTAS)
+            self.assertEqual(len(locations.list_backups()), 1)
+
     def test_pack_roundtrip_and_edit(self):
         with tempfile.TemporaryDirectory() as t:
             pack = make_pack([(-1, make_dsss(system_payload()))] + [(i, make_dsss(slot_payload())) for i in range(5)])

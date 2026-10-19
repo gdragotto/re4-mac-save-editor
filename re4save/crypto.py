@@ -10,14 +10,19 @@ Layout of one save file (all little endian):
     -4    murmur3_32(everything before, seed 0xFFFFFFFF)
 
 Blowfish runs on little-endian 32-bit halves, which is why every block is byte-swapped
-around the (big-endian) pycryptodome implementation.
+around the (big-endian) pycryptodome implementation. Without pycryptodome a slower
+pure-Python implementation is used.
 """
+import os
 import struct
 
 try:
+    if os.environ.get("RE4SAVE_PURE_PYTHON"):
+        raise ImportError
     from Crypto.Cipher import Blowfish
-except ImportError:  # pragma: no cover
-    raise SystemExit("pycryptodome is required:  python3 -m pip install pycryptodome")
+except ImportError:  # pure-Python fallback: no dependencies, just slower
+    Blowfish = None
+from . import blowfish as _pyblowfish
 
 # Key the game loads at runtime (it is not stored as a plain constant in the binary).
 KEY = b"wa9Ui_tFKa_6E_D5gVChjM69xMKDX8QxEykYKhzb4cRNLknpCZUra"
@@ -30,12 +35,26 @@ def _swap32(b):
     return b"".join(b[i:i + 4][::-1] for i in range(0, len(b), 4))
 
 
+_py = None
+
+
+def _pure():
+    global _py
+    if _py is None:
+        _py = _pyblowfish.Blowfish(KEY)
+    return _py
+
+
 def _ecb(b, encrypt):
+    if Blowfish is None:
+        return _pure().ecb(b, encrypt)
     c = Blowfish.new(KEY, Blowfish.MODE_ECB)
     return _swap32((c.encrypt if encrypt else c.decrypt)(_swap32(b)))
 
 
 def _cbc(b, encrypt):
+    if Blowfish is None:
+        return _pure().cbc(b, encrypt)
     c = Blowfish.new(KEY, Blowfish.MODE_CBC, iv=b"\0" * 8)
     return _swap32((c.encrypt if encrypt else c.decrypt)(_swap32(b)))
 

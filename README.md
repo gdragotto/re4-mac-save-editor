@@ -1,42 +1,94 @@
-# re4-mac-save-editor
+<p align="center">
+  <img src="docs/banner.svg" alt="Resident Evil 4 Mac Save Editor: infinite ammo, CP, pesetas, bonus shop" width="100%">
+</p>
 
-Save editor for **Resident Evil 4 (2023 remake) on macOS** (Mac App Store build, `jp.co.capcom.RE4US`).
-It can unlock the infinite-ammo bonuses and other bonus-shop items, complete challenges, set CP and pesetas, and refill ammo, either on every save or only on the ones you pick.
+<p align="center">
+  <a href="https://github.com/gdragotto/re4-mac-save-editor/actions/workflows/test.yml"><img src="https://github.com/gdragotto/re4-mac-save-editor/actions/workflows/test.yml/badge.svg" alt="tests"></a>
+  <img src="https://img.shields.io/badge/macOS-Mac%20App%20Store%20version-black?logo=apple" alt="macOS">
+  <img src="https://img.shields.io/badge/python-3.9%2B-3776AB?logo=python&logoColor=white" alt="Python 3.9+">
+  <img src="https://img.shields.io/badge/license-MIT-8f0f12" alt="MIT">
+</p>
 
-The Steam/PC version uses a different encryption ("Lime"), so this tool doesn't support it. For PC, use
-[LimebrellaSharp](https://github.com/mi5hmash/LimebrellaSharp) or [ree-save-editor](https://github.com/kvasszn/ree-save-editor).
-The iPhone/iPad build should use the same format, but I haven't tested it.
+<p align="center"><b>Unlock infinite ammo, max out CP and pesetas in Resident Evil 4 (2023) on your Mac.</b><br>
+No tech skills needed: paste one line, pick from a menu, play. Your saves are backed up automatically.</p>
 
-## What it can do
+---
 
-| Option | Save | Effect |
-|---|---|---|
-| `--infinite-ammo` | system | Unlocks **and marks as purchased** every Extra Content Shop weapon and accessory. That includes the **Cat Ears** (infinite ammo for every weapon except rocket launchers) and the bonus weapons. |
-| `--cp N` | system | Sets your Extra Content Shop CP. |
-| `--unlock CAT…` | system | Unlocks any of: `gamemodes weapons costumes accessories figures artwork photostyles cp11-weapons cp11-costumes cp11-accessories cp11-figures cp12-costumes cp12-figures all` |
-| `--challenges SET…` | system | Marks challenges (Bonuses → Records) as completed: `main` (111), `separate-ways` (60), `all`. Their CP rewards aren't paid out, so use `--cp` for that. This may also unlock the matching Game Center achievements. |
-| `--unlock-only` | system | Makes items buyable with CP instead of marking them purchased. |
-| `--ptas N` | slots | Sets pesetas. |
-| `--ammo N` | slots | Sets every ammo stack (attaché case and storage) to N rounds. Experimental: the game may clamp stacks above their normal size. |
-| `--slot LIST` | slots | Picks which slots `--ptas`/`--ammo` touch: `all` (default), `autosave`, or e.g. `1,3`. |
+## 🧟 The easy way (2 minutes, no tech skills)
 
-Bonus unlocks and CP are stored in the **system save**, so every slot shares them. Pesetas and ammo belong to each slot.
+**1.** Quit Resident Evil 4.
 
-## Install
+**2.** Open **Terminal**: press <kbd>⌘ Cmd</kbd> + <kbd>Space</kbd>, type `Terminal`, press <kbd>Enter</kbd>.
 
-Requires Python 3.9+.
+**3.** Copy this line, paste it into Terminal, press <kbd>Enter</kbd>:
 
 ```sh
-git clone https://github.com/gdragotto/re4-mac-save-editor.git
-cd re4-mac-save-editor
-python3 -m pip install pycryptodome
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/gdragotto/re4-mac-save-editor/main/install.sh)"
 ```
 
-You can then run it as `python3 -m re4save …`. Optionally, `python3 -m pip install .` installs a `re4save` command.
+**4.** Pick what you want and press <kbd>Enter</kbd>. Then start the game.
 
-## Usage
+<p align="center"><img src="docs/menu.svg" alt="The save editor menu" width="720"></p>
 
-**Quit the game first.** If the game is running, it overwrites your edit the next time it saves, so the tool refuses to edit until you quit.
+Next time, just double-click **RE4 Save Editor** on your Desktop.
+
+<details>
+<summary><b>It says my Mac needs to give permission</b></summary>
+
+macOS keeps each game's saves private. The editor offers to open the right settings page for you:
+**System Settings → Privacy & Security → Full Disk Access**, then turn on **Terminal**, quit Terminal (<kbd>⌘ Cmd</kbd> + <kbd>Q</kbd>), and open the editor again.
+You only need to do this once.
+
+Don't want to do that? Choose *Use my iCloud save instead*. In the game you then press *Options → iCloud → Upload* before, and *Download* after.
+</details>
+
+<details>
+<summary><b>It asks me to install "developer tools"</b></summary>
+
+That's Apple's free package that includes Python, which the editor runs on. Click **Install**, wait a few minutes, then paste the line again.
+</details>
+
+<details>
+<summary><b>Something went wrong / I want my old saves back</b></summary>
+
+Open the editor and press <kbd>u</kbd> (Undo). Every change is backed up first in `Documents/RE4 save backups`, one folder per change.
+</details>
+
+## 🎁 What you can unlock
+
+| | What | Where to find it in the game |
+|---|---|---|
+| ♾️ | **Infinite ammo**: the Cat Ears accessory (infinite ammo for every weapon except rocket launchers) + all bonus weapons and accessories, already purchased | *Extras → Leon's Accessories* |
+| 💎 | **999,999 CP** | *Bonuses → Extra Content Shop* |
+| 💰 | **2,000,000 pesetas** in every save (exactly enough for the Infinite Rocket Launcher) | the merchant |
+| 🎭 | **The whole bonus shop**: costumes, figures, artwork, game modes, Separate Ways extras | *Bonuses* |
+| 🏆 | **All challenges completed** (main game + Separate Ways) | *Bonuses → Records* |
+
+The editor never lowers a value you already have, and it doesn't touch your story progress or inventory.
+
+## ❓ FAQ
+
+**Is it safe?** It only changes the values you pick, leaves everything else byte-for-byte identical, and backs up your saves first.
+It refuses to run while the game is open, because the game would overwrite the changes.
+
+**Which version?** The **Mac App Store** version of Resident Evil 4 (2023). The Steam/PC version uses different encryption and isn't supported.
+For PC, see [LimebrellaSharp](https://github.com/mi5hmash/LimebrellaSharp) or [ree-save-editor](https://github.com/kvasszn/ree-save-editor).
+The iPhone/iPad version likely uses the same format, but it hasn't been tested.
+
+**iCloud?** After editing on your Mac, **don't** press *Options → iCloud → Download*, because that brings back the old cloud copy.
+Press *Upload* if you want the edited saves on your other devices.
+
+**Achievements?** Unlocking bonuses doesn't touch Game Center. *Complete all challenges* might unlock the matching achievements, so skip that option if you care.
+
+---
+
+## 🛠️ Command line (for power users)
+
+```sh
+git clone https://github.com/gdragotto/re4-mac-save-editor.git && cd re4-mac-save-editor
+python3 -m pip install pycryptodome   # optional: about 5x faster, works without it
+python3 -m re4save                    # the menu above
+```
 
 ```sh
 python3 -m re4save info                                   # what's in your saves
@@ -45,61 +97,44 @@ python3 -m re4save edit --ptas 2000000                    # pesetas in every slo
 python3 -m re4save edit --slot 2 --ptas 2000000 --ammo 99 # only slot 2
 python3 -m re4save edit --unlock all --challenges all     # everything in the bonus shop + all challenges
 python3 -m re4save restore                                # undo: put the latest backup back
+python3 -m re4save edit --icloud --infinite-ammo          # edit the iCloud copy instead
 ```
 
-With no path, the tool works on **the save folder the game actually loads**:
-`~/Library/Containers/jp.co.capcom.RE4US/Data/Library/Application Support/CAPCOM/jp.co.capcom.RE4US/SaveData`.
-Edits go straight into that folder, so the next time you start the game you see them.
+| Option | Save | Effect |
+|---|---|---|
+| `--infinite-ammo` | system | Unlocks and marks as purchased every bonus weapon and accessory (includes the Cat Ears) |
+| `--cp N` | system | Extra Content Shop CP |
+| `--unlock CAT…` | system | `gamemodes weapons costumes accessories figures artwork photostyles cp11-weapons cp11-costumes cp11-accessories cp11-figures cp12-costumes cp12-figures all` |
+| `--unlock-only` | system | Make items buyable with CP instead of purchased |
+| `--challenges SET…` | system | `main` (111), `separate-ways` (60), `all`. Their CP rewards aren't paid out |
+| `--ptas N` | slots | Pesetas |
+| `--ammo N` | slots | Every ammo stack to N rounds (experimental: the game may clamp it) |
+| `--slot LIST` | slots | `all` (default), `autosave`, or e.g. `1,3` |
+| `--icloud` / `PATH` | | Edit the iCloud copy, or a folder, a `saveDataPackFile.bin` or a single file |
+| `-o PATH` / `--no-backup` / `--force` | | Write a copy elsewhere / skip the backup / ignore the running-game check |
 
-### Backups
+By default the tool edits the folder the game loads at startup
+(`~/Library/Containers/jp.co.capcom.RE4US/Data/Library/Application Support/CAPCOM/jp.co.capcom.RE4US/SaveData`)
+in place, after a backup to `~/Documents/RE4 save backups/<date time>/`. `restore --list` shows the backups.
+Bonuses, CP and challenges live in the shared system save (`data00-1.bin`). Pesetas and ammo belong to each slot
+(`data000.bin` is the autosave, `data00NSlot.bin` are the manual slots).
 
-Before every edit, the tool copies the saves it's about to change to `~/Documents/RE4 save backups/<date time>/`.
-The backups are kept outside the game's folder and iCloud, so the game never sees them.
+## 🔬 How it works
 
-- `python3 -m re4save restore` puts the most recent backup back.
-- `restore --list` shows all backups, and `restore "<name>"` restores a specific one.
-- `--no-backup` skips the backup.
-- `-o PATH` writes a modified copy somewhere else and leaves your saves alone.
+The saves are RE Engine `DSSS` files, encrypted with **Blowfish** (CBC with a zero IV, little-endian blocks) and signed with **murmur3**.
+The game loads the Blowfish key at runtime instead of storing it as a constant, so it was read from the running game's memory.
+The payload is RE Engine's self-describing serializer, so fields are found by the murmur3 hash of their names.
+Values are patched in place and the signatures (plus the SHA-256 of iCloud packs) are recomputed.
+Each save keeps its owner's user ID, so it stays bound to your account. [docs/FORMAT.md](docs/FORMAT.md) has the full format.
 
-### macOS permission (first run)
-
-macOS protects other apps' data, so the first time you'll probably see *"macOS blocks your terminal from reading the
-game's save folder"*. You have three options:
-
-1. **Give your terminal Full Disk Access** (simplest, one time). Go to System Settings → Privacy & Security → Full Disk Access,
-   enable Terminal (or iTerm, …), then restart the terminal.
-2. **Use the iCloud copy instead.** No permission is needed:
-   in the game choose *Options → iCloud → Upload*, quit, run the commands with `--icloud`, then start the game and choose
-   *Options → iCloud → Download*. The iCloud copy is only as recent as your last Upload, so upload first.
-3. **Work on a copy.** In Finder, press ⌘⇧G and paste the folder path above, then copy `SaveData` somewhere and pass that path to the tool.
-   When you're done, copy the files back with Finder.
-
-### What's in the folder
-
-`data00-1.bin` is the system save (bonuses, CP, challenges). `data000.bin` is the autosave, and `data001Slot.bin`,
-`data002Slot.bin`, … are the manual slots. The tool also accepts a single file or an iCloud-style `saveDataPackFile.bin` as PATH.
-
-Equip the Cat Ears from the game's Extras menu (*Leon's Accessories*). `python3 -m re4save dump --save system|autosave|N`
-prints every field of a save, if you want to explore further.
-
-## How it works
-
-The saves are RE Engine `DSSS` files, encrypted with **Blowfish** (CBC with a zero IV, little-endian blocks) and signed
-with **murmur3**. The payload is RE Engine's self-describing binary serializer, so fields are found by the murmur3 hash
-of their names. Edits patch values in place, so the file layout never changes, and the tool recomputes the signatures
-(and the SHA-256 for pack files). Each save stays bound to the account that created it, because its user ID is left untouched.
-
-The Blowfish key isn't stored in the game binary as a constant. It's loaded at runtime, and I read it from the running game's memory.
-[docs/FORMAT.md](docs/FORMAT.md) has the full format.
+No dependencies: without `pycryptodome` the tool falls back to a built-in pure-Python Blowfish, whose tables are computed from the digits of π.
 
 ## Disclaimer
 
-Not affiliated with or endorsed by Capcom. This is for editing your own single-player saves. **Back up your saves first.**
-A broken save is your responsibility. Online features and achievements aren't affected by anything this tool does, but use it at your own risk.
+Fan-made and not affiliated with or endorsed by Capcom. *Resident Evil* is a trademark of Capcom. The artwork in this README is original.
+This is for your own single-player saves, and you use it at your own risk.
 
 Thanks to mi5hmash ([AutostrongSharp](https://github.com/mi5hmash/AutostrongSharp)) and kvasszn
-([ree-save-editor](https://github.com/kvasszn/ree-save-editor)) for documenting the RE Engine save formats.
+([ree-save-editor](https://github.com/kvasszn/ree-save-editor)) for documenting RE Engine save formats.
 
-## License
-
-MIT
+MIT License

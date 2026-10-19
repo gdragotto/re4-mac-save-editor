@@ -193,6 +193,11 @@ def main(argv=None):
     d.add_argument("-o", "--output", help="write to a file instead of stdout")
     d.set_defaults(func=cmd_dump)
 
+    if argv is None:
+        argv = sys.argv[1:]
+    if not argv:                      # double-clicked / no arguments: guided mode
+        from . import easy
+        return easy.run()
     a = p.parse_args(argv)
     a.func(a)
 
